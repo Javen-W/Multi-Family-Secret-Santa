@@ -30,6 +30,9 @@ class AssignmentMailer:
     def deliver(self, result: SolveResult) -> None:
         """Deliver every assignment in giver-name order.
 
+        Live delivery uses one SMTP session for the whole program. Mock mode
+        records a skip for each giver and does not open a connection.
+
         Args:
             result: Solved pairings. Validation must already have passed.
 
@@ -37,17 +40,23 @@ class AssignmentMailer:
             EmailDeliveryError: Live SMTP delivery failed for a giver.
         """
         price_label = self._config.price_label()
-        for assignment in result.assignments:
-            body = self.render(
-                giver_name=assignment.giver.name,
-                recipient_name=assignment.recipient.name,
-                price_label=price_label,
+        messages = [
+            (
+                assignment.giver.name,
+                assignment.giver.email,
+                self.render(
+                    giver_name=assignment.giver.name,
+                    recipient_name=assignment.recipient.name,
+                    price_label=price_label,
+                ),
             )
-            self._deliver_one(
-                giver_name=assignment.giver.name,
-                recipient_address=assignment.giver.email,
-                body=body,
-            )
+            for assignment in result.assignments
+        ]
+        if self._config.email.mock_mode:
+            for giver_name, recipient_address, _body in messages:
+                logger.info("Mock mode: skipped email to %s <%s>", giver_name, recipient_address)
+            return
+        self._send_all(messages)
 
     def render(self, giver_name: str, recipient_name: str, price_label: str) -> str:
         """Fill the template for a single giver.
@@ -69,23 +78,19 @@ class AssignmentMailer:
         except (IndexError, KeyError, ValueError) as exc:
             raise ConfigValidationError(f"email.template could not be rendered: {exc}") from exc
 
-    def _deliver_one(self, giver_name: str, recipient_address: str, body: str) -> None:
-        """Send one message, or log a skip when mock mode is on."""
-        if self._config.email.mock_mode:
-            logger.info("Mock mode: skipped email to %s <%s>", giver_name, recipient_address)
-            return
+    def _send_all(self, messages: list[tuple[str, str, str]]) -> None:
+        """Open one SMTP session and send every rendered message.
 
-        message = EmailMessage()
-        message["Subject"] = self._config.email.subject
-        message["From"] = self._config.email.from_address
-        message["To"] = recipient_address
-        message.set_content(body)
-        self._send(message)
-        logger.info("Sent email to %s <%s>", giver_name, recipient_address)
+        Args:
+            messages: Tuples of giver name, giver email, and message body.
 
-    def _send(self, message: EmailMessage) -> None:
-        """Open an SMTP session and send ``message``."""
+        Raises:
+            EmailDeliveryError: The server could not accept a message.
+        """
         settings = self._config.email
+        # None until a recipient is attempted, so a connection failure is not
+        # described as a failed message to a person.
+        current_address: str | None = None
         try:
             with smtplib.SMTP(
                 settings.smtp_host,
@@ -96,7 +101,16 @@ class AssignmentMailer:
                     smtp.starttls()
                 if settings.smtp_username:
                     smtp.login(settings.smtp_username, settings.smtp_password)
-                smtp.send_message(message)
+                for giver_name, recipient_address, body in messages:
+                    current_address = recipient_address
+                    message = EmailMessage()
+                    message["Subject"] = settings.subject
+                    message["From"] = settings.from_address
+                    message["To"] = recipient_address
+                    message.set_content(body)
+                    smtp.send_message(message)
+                    logger.info("Sent email to %s <%s>", giver_name, recipient_address)
         except (OSError, smtplib.SMTPException) as exc:
-            recipient = message["To"]
-            raise EmailDeliveryError(f"Could not email {recipient}: {exc}") from exc
+            if current_address is None:
+                raise EmailDeliveryError(f"Could not connect to {settings.smtp_host}: {exc}") from exc
+            raise EmailDeliveryError(f"Could not email {current_address}: {exc}") from exc

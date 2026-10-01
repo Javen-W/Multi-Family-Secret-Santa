@@ -15,10 +15,9 @@ def test_cleans_whitespace_and_duplicate_tokens(tmp_path: Path) -> None:
     path = tmp_path / "people.csv"
     write_registry(
         path,
-        f"""{HEADER}
- Bob , bob@example.com , A , " Cara , Cara "
- Cara , cara@example.com , B ,
-""",
+        f"{HEADER}\n"
+        ' Bob , bob@example.com , A," Cara , Cara "\n'
+        " Cara , cara@example.com , B ,\n",
     )
 
     registry = RegistryLoader().load(path)
