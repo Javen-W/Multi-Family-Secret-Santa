@@ -1,2 +1,3 @@
 # Ignore registries folder, except for the example.
+!*.example
 registries/
