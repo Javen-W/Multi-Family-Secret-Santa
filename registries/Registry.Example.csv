@@ -1,0 +1,10 @@
+name,email,group,exclusions
+Bob,bob@gmail.com,A,
+Sarah,sarah@hotmail.com,A,B
+Emily,emily@yahoo.com,B,C
+Sean,sean@gmail.com,B,"Joe,Sarah"
+Joe,joe@gmail.com,B,A
+Tom,tom@hotmail.com,C,
+Frank,frank@gmail.com,C,"A,B"
+Alice,alice@yahoo.com,C,B
+Michael,michael@gmail.com,C,"A,Emily"
