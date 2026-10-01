@@ -1,3 +1,15 @@
-# Ignore registries folder, except for the example.
-!*.example
-registries/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Local config may contain email credentials.
+config.yaml
+
+# Participant registries stay local; examples remain tracked.
+registries/*
+!registries/*.example

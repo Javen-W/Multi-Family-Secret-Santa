@@ -1,0 +1,17 @@
+name,email,group,exclusions
+Alice,alice@example.com,FamilyA,"Chad,Cole,Chad"
+Adam,adam@example.com,FamilyA,"Daisy,Dean"
+Amy,amy@example.com,FamilyA,Chad
+Aaron,aaron@example.com,FamilyA,"Cara,Cora"
+Bella,bella@example.com,FamilyB,FamilyD
+Ben,ben@example.com,FamilyB,FamilyD
+Beth,beth@example.com,FamilyB,Dean
+Brad,brad@example.com,FamilyB,"Alice,Adam"
+Cara,cara@example.com,FamilyC,Aaron
+Cole,cole@example.com,FamilyC,Amy
+Cora,cora@example.com,FamilyC,"Adam,Ben"
+Chad,chad@example.com,FamilyC,Amy
+Dana,dana@example.com,FamilyD,"Brad,Beth"
+Drew,drew@example.com,FamilyD,"Bella,Brad"
+Daisy,daisy@example.com,FamilyD,Ben
+Dean,dean@example.com,FamilyD,"Brad,Santa"

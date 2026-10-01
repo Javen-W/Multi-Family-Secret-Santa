@@ -1,0 +1,24 @@
+registry_path: registries/dummy_registry.csv.example
+gift_price_limit: 100
+currency: USD
+seed: null
+log_level: INFO
+email:
+  subject: Your Secret Santa assignment
+  mock_mode: true
+  from_address: santa@example.com
+  smtp_host: smtp.example.com
+  smtp_port: 587
+  smtp_username: ""
+  smtp_password: ""
+  use_tls: true
+  timeout_seconds: 30
+  template: |
+    Hello {giver_name},
+
+    You are the Secret Santa for {recipient_name}.
+    Please keep this assignment to yourself.
+
+    A friendly reminder: the gift price limit is {price_limit}.
+
+    Happy holidays.
