@@ -40,6 +40,11 @@ Among other appropriate hyperparameters...
 6. A unit test suite is implemented to validate invariants, constraints, expected behavior, regressions, integration, etc.
 7. Data is validated, handled, and cleaned within reason.
 8. Infeasible programs throw errors. Infeasible individuals are handled/removed within reason.
+9. Implement a helpful, non-verbose `README.md` file.
+10. Any additional, helpful documentation is produced and stored in `docs/`. Use mermaid diagrams and Latex equations where appropriate.
+11. Implement a Python notebook `.ipynb` as a convenient project entry-point / driver.
+12. Generate an example/default config yaml file.
+13. Generate a non-trivial dummy registry file (in addition to the example one) for testing and validation purposes.
 
 ## Definitions
 
@@ -62,4 +67,10 @@ Among other appropriate hyperparameters...
 2. Comment all of your code, especially function and class docstrings.
 3. You prefer strongly-typed Python variables.
 4. Never use emojis, except for perhaps in the default email template messages.
+
+## File Structure
+
+- Dedicated documentation (markdown) files are encouraged and belong in `docs/`. 
+- Programming files belong in `src/`. Organize intelligently into sub-directories.
+- Registries belong in `registries/`.
 
