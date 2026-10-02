@@ -101,7 +101,28 @@ bob,other@example.com,B,
     assert by_name["bob"].excluded_names == frozenset()
 
 
-def test_blank_rows_and_optional_columns(tmp_path: Path) -> None:
+def test_blank_rows_are_skipped_and_a_missing_group_removes_the_person(tmp_path: Path) -> None:
+    path = tmp_path / "people.csv"
+    write_registry(
+        path,
+        f"""{HEADER}
+Ann,ann@example.com,North,Zoe
+Bob,bob@example.com,South,
+
+Zoe,zoe@example.com,,
+""",
+    )
+
+    registry = RegistryLoader().load(path)
+
+    assert [participant.name for participant in registry.participants] == ["Ann", "Bob"]
+    assert [(item.name, item.reason) for item in registry.removed] == [("Zoe", "missing group")]
+    ann = next(participant for participant in registry.participants if participant.name == "Ann")
+    assert ann.excluded_names == frozenset()
+    assert {item.token for item in registry.ignored_exclusions} == {"Zoe"}
+
+
+def test_rows_without_a_group_column_are_removed(tmp_path: Path) -> None:
     path = tmp_path / "people.csv"
     write_registry(
         path,
@@ -114,9 +135,9 @@ Bob,bob@example.com
 
     registry = RegistryLoader().load(path)
 
-    assert [participant.name for participant in registry.participants] == ["Ann", "Bob"]
-    assert all(participant.group is None for participant in registry.participants)
-    assert all(participant.exclusion_tokens == () for participant in registry.participants)
+    assert registry.participants == ()
+    assert [item.name for item in registry.removed] == ["Ann", "Bob"]
+    assert {item.reason for item in registry.removed} == {"missing group"}
 
 
 def test_duplicate_name_is_rejected(tmp_path: Path) -> None:

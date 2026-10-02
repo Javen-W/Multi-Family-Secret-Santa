@@ -49,11 +49,12 @@ class ExchangeSolver:
         """
         participants = registry.participants
         allowed = self._allowed_graph(participants)
-        pruned, removed = self._prune(allowed)
+        pruned, pruned_removed = self._prune(allowed)
+        removed = list(registry.removed) + pruned_removed
         if len(pruned) < 2:
             raise InfeasibleProgramError(
                 f"Only {len(pruned)} participant(s) remain after removing "
-                f"{len(removed)} infeasible participant(s); at least 2 are required."
+                f"{len(removed)} participant(s); at least 2 are required."
             )
 
         pairing = self._perfect_matching(pruned)
@@ -61,7 +62,7 @@ class ExchangeSolver:
             raise InfeasibleProgramError(
                 "No complete Secret Santa assignment exists for "
                 f"{len(pruned)} participants after removing {len(removed)} "
-                "infeasible participant(s)."
+                "participant(s)."
             )
 
         by_name = {participant.name: participant for participant in participants}
@@ -69,10 +70,10 @@ class ExchangeSolver:
             Assignment(giver=by_name[giver], recipient=by_name[recipient])
             for giver, recipient in sorted(pairing.items())
         )
-        checks = self._checks(assignments, participants, removed)
+        checks = self._checks(assignments, participants, pruned_removed)
         return SolveResult(
             assignments=assignments,
-            loaded_count=len(participants),
+            loaded_count=len(participants) + len(registry.removed),
             removed=tuple(removed),
             ignored_exclusions=registry.ignored_exclusions,
             checks=checks,

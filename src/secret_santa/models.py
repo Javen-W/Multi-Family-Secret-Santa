@@ -44,7 +44,8 @@ class Participant:
     Attributes:
         name: Unique participant identifier.
         email: Address that receives this person's assignment.
-        group: Optional social-circle label. Sharing a group does not block pairing.
+        group: Social-circle label. Sharing a group does not block pairing.
+            Registry rows with no group are removed before matching.
         exclusion_tokens: Cleaned tokens from the registry, in first-seen order.
         excluded_names: Other participants named directly by those tokens.
     """
@@ -63,23 +64,8 @@ class Participant:
 
 
 @dataclass(frozen=True)
-class Registry:
-    """Participants loaded from one CSV file.
-
-    Attributes:
-        path: Resolved path of the file that was read.
-        participants: Cleaned participants in file order.
-        ignored_exclusions: Tokens skipped while resolving exclusions.
-    """
-
-    path: Path
-    participants: tuple[Participant, ...]
-    ignored_exclusions: tuple[IgnoredExclusion, ...]
-
-
-@dataclass(frozen=True)
 class RemovedParticipant:
-    """A participant dropped because they had no legal giver or recipient.
+    """A participant dropped before or during assignment.
 
     Attributes:
         name: Participant name.
@@ -88,6 +74,23 @@ class RemovedParticipant:
 
     name: str
     reason: str
+
+
+@dataclass(frozen=True)
+class Registry:
+    """Participants loaded from one CSV file.
+
+    Attributes:
+        path: Resolved path of the file that was read.
+        participants: Participants who remain after cleaning, in file order.
+        ignored_exclusions: Tokens skipped while resolving exclusions.
+        removed: Participants dropped during cleaning, such as a missing group.
+    """
+
+    path: Path
+    participants: tuple[Participant, ...]
+    ignored_exclusions: tuple[IgnoredExclusion, ...]
+    removed: tuple[RemovedParticipant, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -128,8 +131,8 @@ class SolveResult:
 
     Attributes:
         assignments: Pairings for participants who remained in the program.
-        loaded_count: Participants present in the registry before pruning.
-        removed: Participants dropped because they had no legal partner.
+        loaded_count: Participants read from the registry, including those later removed.
+        removed: Participants dropped for a missing group or because they had no legal partner.
         ignored_exclusions: Exclusion tokens that did not match another person.
         checks: Invariant results for ``assignments``.
     """

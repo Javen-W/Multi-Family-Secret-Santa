@@ -1,5 +1,5 @@
 name,email,group,exclusions
-Alice,alice@example.com,FamilyA,"Chad,Cole,Chad"
+Alice,alice@example.com,FamilyA,"Chad,Cole,Chad,FamilyC"
 Adam,adam@example.com,FamilyA,"Daisy,Dean"
 Amy,amy@example.com,FamilyA,Chad
 Aaron,aaron@example.com,FamilyA,"Cara,Cora"

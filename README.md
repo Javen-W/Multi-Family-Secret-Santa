@@ -53,7 +53,7 @@ Columns:
 | --- | --- | --- |
 | `name` | yes | Unique, case-sensitive identifier |
 | `email` | yes | Address that receives this person's assignment |
-| `group` | no | Social-circle label. Sharing a group does not block pairing |
+| `group` | yes, to participate | Social-circle label. A blank or missing group removes that person. Sharing a group does not block pairing |
 | `exclusions` | no | Comma-separated names or group labels this person cannot be paired with |
 
 Quote an exclusions list that contains commas: `"Joe,Sarah"`. Duplicate tokens and tokens that match nobody are ignored. A token that matches both a person and a group excludes that person and the whole group.
@@ -63,7 +63,7 @@ Quote an exclusions list that contains commas: `"Joe,Sarah"`. Duplicate tokens a
 - Each remaining participant gives one gift and receives one gift.
 - Nobody is assigned to themselves.
 - An exclusion blocks both directions. If Ada excludes Ben, or excludes Ben's group, Ada cannot give to Ben and Ben cannot give to Ada.
-- A participant with no legal giver or recipient is removed and named in the log.
+- A participant with no group, or with no legal giver or recipient, is removed and named in the log.
 - If the people who remain still have no complete assignment, the program raises an error and sends no email.
 
 ## Organizer log

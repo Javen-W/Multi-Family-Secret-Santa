@@ -12,7 +12,7 @@ There are also constraints that not everybody can be assigned to everyone. This 
 
 - See `registry.csv.example` as an example registry `.csv` file.
 - Actual registry `.csv` files will live in `registries/`.
-- Each participant (row) in a registry must contain `name` and `email` fields, and optionally `group` and `exclusions` fields. 
+- Each participant (row) in a registry must contain `name` and `email` fields, and optionally `exclusions`. A row must also contain `group` to stay in the program. A blank or missing `group` removes that participant. 
 - `name` fields must be unique, and serve as unique identifiers.
 - The `exclusions` field may contain a comma-delimited list of zero or more `name` or `group` entries. Duplicates and invalid entries are ignored.
 - Multiple participants may share the same `group` field.

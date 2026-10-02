@@ -1,10 +1,13 @@
 """CSV registry loading, cleaning, and exclusion resolution."""
 
 import csv
+import logging
 from pathlib import Path
 
 from secret_santa.exceptions import RegistryValidationError
-from secret_santa.models import IgnoredExclusion, Participant, Registry, is_valid_email
+from secret_santa.models import IgnoredExclusion, Participant, Registry, RemovedParticipant, is_valid_email
+
+logger = logging.getLogger("secret_santa.registry")
 
 REQUIRED_COLUMNS: frozenset[str] = frozenset({"name", "email"})
 
@@ -15,12 +18,15 @@ class RegistryLoader:
     def load(self, path: str | Path) -> Registry:
         """Read ``path``, clean each row, and expand group exclusions to names.
 
+        A row with a blank or missing ``group`` is removed. That person is not
+        matched and is not used when other rows' exclusions are resolved.
+
         Args:
-            path: CSV file with ``name`` and ``email`` columns. ``group`` and
-                ``exclusions`` are optional.
+            path: CSV file with ``name`` and ``email`` columns. ``exclusions`` is
+                optional. ``group`` is required for a row to stay in the program.
 
         Returns:
-            Cleaned participants and any exclusion tokens that were ignored.
+            Remaining participants, ignored exclusion tokens, and removed rows.
 
         Raises:
             RegistryValidationError: A required field is missing, a name is duplicated,
@@ -33,11 +39,13 @@ class RegistryLoader:
 
         cleaned = [self._clean_row(row, line_number) for line_number, row in rows]
         self._require_unique_names(cleaned)
-        participants, ignored = self._resolve_exclusions(cleaned)
+        kept, removed = self._drop_missing_groups(cleaned)
+        participants, ignored = self._resolve_exclusions(kept)
         return Registry(
             path=registry_path.resolve(),
             participants=tuple(participants),
             ignored_exclusions=tuple(ignored),
+            removed=tuple(removed),
         )
 
     def _read_rows(self, path: Path) -> list[tuple[int, dict[str, str]]]:
@@ -124,6 +132,21 @@ class RegistryLoader:
             exclusion_tokens=tokens,
             excluded_names=frozenset(),
         )
+
+    def _drop_missing_groups(
+        self,
+        participants: list[Participant],
+    ) -> tuple[list[Participant], list[RemovedParticipant]]:
+        """Drop rows whose group is blank and log each removal."""
+        kept: list[Participant] = []
+        removed: list[RemovedParticipant] = []
+        for participant in participants:
+            if participant.group:
+                kept.append(participant)
+                continue
+            logger.warning("Removed participant %s: missing group", participant.name)
+            removed.append(RemovedParticipant(participant.name, "missing group"))
+        return kept, removed
 
     def _require_unique_names(self, participants: list[Participant]) -> None:
         """Reject duplicate names. Names are case-sensitive identifiers."""

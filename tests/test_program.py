@@ -179,6 +179,34 @@ Zoe,zoe@example.com,West,"Ann,Bob,Cara"
     assert sum(" -> " in message for message in messages) == 3
 
 
+def test_missing_group_removes_the_participant_before_email(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO, logger="secret_santa")
+    registry_path = tmp_path / "people.csv"
+    write_registry(
+        registry_path,
+        f"""{HEADER}
+Ann,ann@example.com,North,
+Bob,bob@example.com,South,
+Zoe,zoe@example.com,,
+""",
+    )
+    config_path = tmp_path / "config.yaml"
+    write_config(config_path, registry_path, seed=1)
+
+    result = run_program(config_path)
+
+    assert result.loaded_count == 3
+    assert [(item.name, item.reason) for item in result.removed] == [("Zoe", "missing group")]
+    assert {assignment.giver.name for assignment in result.assignments} == {"Ann", "Bob"}
+    messages = _messages(caplog)
+    assert any("Zoe: missing group" in message for message in messages)
+    assert not any("skipped email to Zoe" in message for message in messages)
+    assert sum(" -> " in message for message in messages) == 2
+
+
 def test_infeasible_program_sends_no_email(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO, logger="secret_santa")
     registry_path = tmp_path / "people.csv"
