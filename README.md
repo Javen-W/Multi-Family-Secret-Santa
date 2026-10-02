@@ -38,7 +38,7 @@ run_program("config.yaml")
 [config.yaml.example](config.yaml.example) sets the registry path, gift price limit, currency, random seed, log level, and email settings.
 
 - `seed`: integer for a repeatable assignment, or `null` for a new draw each run.
-- `email.mock_mode`: `true` logs delivery and sends nothing. `false` sends through SMTP. Put an API key in `smtp_username` or `smtp_password` when the provider expects SMTP AUTH.
+- `email.mock_mode`: `true` logs delivery and sends nothing. `false` sends through SMTP. [docs/EMAIL.md](docs/EMAIL.md) covers Gmail app passwords and the rest of the email settings.
 - `email.template` must contain `{giver_name}`, `{recipient_name}`, and `{price_limit}`. Double any literal braces.
 
 Registry paths in the config are relative to the config file.
@@ -87,3 +87,4 @@ pytest
 - [docs/SPECS.md](docs/SPECS.md) is the project specification.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes the modules.
 - [docs/ALGORITHM.md](docs/ALGORITHM.md) describes exclusions, pruning, and matching.
+- [docs/EMAIL.md](docs/EMAIL.md) describes Gmail app-password setup and email configuration.
